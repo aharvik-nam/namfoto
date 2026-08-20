@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Instagram, Mail, MapPin } from "lucide-react";
 
 /**
@@ -11,18 +11,80 @@ const FONT_STACK =
   "'ABCfavorit Book', Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
 // ---------------------------------------------------------------------------
+// Reveal-on-scroll — drives the entrance animation for graphic elements and
+// cards as they enter the viewport, undone for prefers-reduced-motion.
+// ---------------------------------------------------------------------------
+
+function useReveal<T extends HTMLElement>(threshold = 0.15) {
+  const ref = useRef<T | null>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setVisible(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { threshold }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [threshold]);
+
+  return { ref, visible };
+}
+
+function Reveal({
+  children,
+  delay = 0,
+  className = "",
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+}) {
+  const { ref, visible } = useReveal<HTMLDivElement>();
+  return (
+    <div
+      ref={ref}
+      className={`transition-all duration-700 ease-out motion-reduce:transition-none ${
+        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+      } ${className}`}
+      style={{ transitionDelay: visible ? `${delay}ms` : "0ms" }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Shared building blocks
 // ---------------------------------------------------------------------------
 
 function DiamondGrid({ tone = "ash" }: { tone?: "ink" | "ash" | "white" }) {
   const fill = tone === "white" ? "#ffffff" : tone === "ink" ? "#181011" : "#aaaaaa";
+  const { ref, visible } = useReveal<HTMLDivElement>();
   return (
-    <div className="grid grid-cols-3 gap-[3px] w-10 h-10 shrink-0" aria-hidden="true">
+    <div ref={ref} className="grid grid-cols-3 gap-[3px] w-10 h-10 shrink-0" aria-hidden="true">
       {Array.from({ length: 9 }).map((_, i) => (
         <span
           key={i}
-          className="w-[9px] h-[9px] rotate-45"
-          style={{ backgroundColor: fill, opacity: i % 2 === 0 ? 1 : 0.4 }}
+          className={`w-[9px] h-[9px] rotate-45 transition-transform duration-500 ease-out motion-reduce:transition-none ${
+            visible ? "scale-100" : "scale-0"
+          }`}
+          style={{
+            backgroundColor: fill,
+            opacity: i % 2 === 0 ? 1 : 0.4,
+            transitionDelay: visible ? `${i * 45}ms` : "0ms",
+          }}
         />
       ))}
     </div>
@@ -53,7 +115,7 @@ function PillButton({
       href={href}
       target={external ? "_blank" : undefined}
       rel={external ? "noopener noreferrer" : undefined}
-      className={`inline-flex items-center rounded-[100px] border px-5 py-2 text-[15px] transition-colors ${
+      className={`inline-flex items-center rounded-[100px] border px-5 py-2 text-[15px] transition-all hover:-translate-y-px motion-reduce:hover:translate-y-0 ${
         onDark
           ? "border-white text-white hover:bg-white/10"
           : "border-[#181011] text-[#181011] hover:bg-[#181011]/5"
@@ -78,7 +140,7 @@ function FeatureRow({ term, body }: { term: string; body: string }) {
 
 function ServiceCard({ title, body }: { title: string; body: string }) {
   return (
-    <div className="flex flex-col gap-4 rounded-[4px] border border-[#d8d4d4] bg-white p-6">
+    <div className="flex flex-col gap-4 rounded-[4px] border border-[#d8d4d4] bg-white p-6 transition-transform duration-300 hover:-translate-y-1 motion-reduce:hover:translate-y-0">
       <DiamondGrid tone="ink" />
       <div>
         <h3 className="text-[20px] font-bold leading-[1.3] text-[#181011]">{title}</h3>
@@ -94,7 +156,7 @@ function ProjectCard({ title, body, href }: { title: string; body: string; href:
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex flex-col gap-3 rounded-[4px] border border-white/25 p-6 transition-colors hover:border-white/60 hover:bg-white/[0.04]"
+      className="group flex flex-col gap-3 rounded-[4px] border border-white/25 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-white/60 hover:bg-white/[0.04] motion-reduce:hover:translate-y-0"
     >
       <div className="flex items-start justify-between gap-4">
         <h3 className="text-[20px] font-bold leading-[1.3] text-white">{title}</h3>
@@ -111,7 +173,7 @@ function ResourceLink({ title, href }: { title: string; href: string }) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex items-center justify-between gap-3 rounded-[4px] border border-[#d8d4d4] bg-white px-5 py-4 transition-colors hover:border-[#181011]"
+      className="group flex items-center justify-between gap-3 rounded-[4px] border border-[#d8d4d4] bg-white px-5 py-4 transition-all duration-300 hover:-translate-y-0.5 hover:border-[#181011] motion-reduce:hover:translate-y-0"
     >
       <span className="text-[15px] text-[#181011]">{title}</span>
       <ArrowUpRight className="w-4 h-4 shrink-0 text-[#666666] transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[#181011]" />
@@ -124,27 +186,30 @@ function ResourceLink({ title, href }: { title: string; href: string }) {
 // photography, in place of stock imagery the brand guide explicitly avoids.
 // ---------------------------------------------------------------------------
 
-function CaptureGridIllustration() {
+const CAPTURED_CELLS = [
+  "2-1", "3-1", "4-1", "2-2", "3-2", "4-2", "5-2", "3-3", "4-3", "5-3", "6-3",
+  "4-4", "5-4", "6-4", "7-4", "5-5", "6-5", "7-5", "8-5", "6-6", "7-6",
+];
+
+function CaptureGridIllustration({ visible }: { visible: boolean }) {
   const cols = 12;
   const rows = 8;
   const cell = 28;
-  const captured = new Set([
-    "2-1", "3-1", "4-1", "2-2", "3-2", "4-2", "5-2", "3-3", "4-3", "5-3", "6-3",
-    "4-4", "5-4", "6-4", "7-4", "5-5", "6-5", "7-5", "8-5", "6-6", "7-6",
-  ]);
+  const captured = new Set(CAPTURED_CELLS);
 
   return (
     <svg
       viewBox={`0 0 ${cols * cell} ${rows * cell}`}
       className="h-auto w-full"
       role="img"
-      aria-label="Skjematisk rutenett som illustrerer et gigapixel-opptak"
+      aria-label="Skjematisk rutenett som illustrerer et gigapixel-opptak, tegnet opp som en skanning"
     >
       <rect x="0" y="0" width={cols * cell} height={rows * cell} fill="#ffffff" />
       {Array.from({ length: rows }).map((_, r) =>
         Array.from({ length: cols }).map((_, c) => {
           const key = `${c}-${r}`;
           const isCaptured = captured.has(key);
+          const order = CAPTURED_CELLS.indexOf(key);
           return (
             <rect
               key={key}
@@ -153,7 +218,15 @@ function CaptureGridIllustration() {
               width={cell}
               height={cell}
               fill={isCaptured ? "#181011" : "none"}
-              fillOpacity={isCaptured ? 0.06 : 1}
+              className="transition-[fill-opacity] duration-500 ease-out motion-reduce:transition-none"
+              style={
+                isCaptured
+                  ? {
+                      fillOpacity: visible ? 0.06 : 0,
+                      transitionDelay: visible ? `${order * 18}ms` : "0ms",
+                    }
+                  : undefined
+              }
               stroke="#181011"
               strokeOpacity={0.3}
               strokeWidth={1}
@@ -165,19 +238,26 @@ function CaptureGridIllustration() {
         d={`M ${2 * cell} ${1 * cell} L ${8 * cell} ${5 * cell} L ${7 * cell} ${6 * cell}`}
         fill="none"
         stroke="#181011"
-        strokeOpacity={0.5}
         strokeWidth={1}
         strokeDasharray="4 4"
+        className="animate-[dash-flow_1.4s_linear_infinite] transition-[stroke-opacity] duration-700 ease-out motion-reduce:animate-none"
+        style={{ strokeOpacity: visible ? 0.5 : 0 }}
       />
     </svg>
   );
 }
 
 function CaptureGridPanel() {
+  const { ref, visible } = useReveal<HTMLDivElement>();
   return (
-    <div className="relative rounded-[4px] border border-[#181011]/15 bg-white p-3">
-      <CaptureGridIllustration />
-      <div className="absolute bottom-4 left-4 max-w-[240px] rounded-[4px] border border-[#d8d4d4] bg-white/95 px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.15)] backdrop-blur-sm">
+    <div ref={ref} className="relative rounded-[4px] border border-[#181011]/15 bg-white p-3">
+      <CaptureGridIllustration visible={visible} />
+      <div
+        className={`absolute bottom-4 left-4 max-w-[240px] rounded-[4px] border border-[#d8d4d4] bg-white/95 px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.15)] backdrop-blur-sm transition-all duration-500 ease-out motion-reduce:transition-none ${
+          visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
+        }`}
+        style={{ transitionDelay: visible ? "550ms" : "0ms" }}
+      >
         <p className="text-[14px] font-bold text-[#181011]">Gigapixelbilder</p>
         <p className="mt-1 text-[12px] leading-[1.5] text-[#666666]">
           1000–1500 næropptak satt sammen til ekstremt høyoppløselige filer.
@@ -222,18 +302,27 @@ function Hero() {
       <div className="mx-auto grid max-w-[1200px] items-center gap-12 px-6 py-16 md:grid-cols-2 md:py-20">
         <div>
           <SectionLabel>Nasjonalmuseet Foto Beta</SectionLabel>
-          <h1 className="mt-6 max-w-[520px] text-[40px] uppercase leading-[1.1] tracking-[-0.02em] text-[#181011] md:text-[48px]">
+          <h1 className="mt-6 max-w-[520px] animate-[fade-up_0.7s_ease_both] text-[40px] uppercase leading-[1.1] tracking-[-0.02em] text-[#181011] motion-reduce:animate-none md:text-[48px]">
             Fotografi i utvikling
           </h1>
-          <p className="mt-6 max-w-[480px] text-[17px] leading-[1.5] text-[#222222]">
+          <p
+            className="mt-6 max-w-[480px] animate-[fade-up_0.7s_ease_both] text-[17px] leading-[1.5] text-[#222222] motion-reduce:animate-none"
+            style={{ animationDelay: "120ms" }}
+          >
             Utforsk grensene for digital dokumentasjon og visuell formidling gjennom våre nyeste
             lab-prosjekter.
           </p>
-          <div className="mt-8">
+          <div
+            className="mt-8 animate-[fade-up_0.7s_ease_both] motion-reduce:animate-none"
+            style={{ animationDelay: "220ms" }}
+          >
             <PillButton href="#experiments">Utforsk prosjekter</PillButton>
           </div>
 
-          <div className="mt-14 flex flex-col border-t border-[#d8d4d4]">
+          <div
+            className="mt-14 flex flex-col animate-[fade-up_0.7s_ease_both] border-t border-[#d8d4d4] motion-reduce:animate-none"
+            style={{ animationDelay: "320ms" }}
+          >
             <FeatureRow term="Presisjon" body="Sub-millimeter detaljgjengivelse for arkivbruk." />
             <FeatureRow term="Bevaring" body="Digital sikring av sårbare objekter." />
           </div>
@@ -278,8 +367,10 @@ function Services() {
           kunstskatter.
         </p>
         <div className="mt-12 grid gap-4 sm:grid-cols-2">
-          {SERVICES.map((s) => (
-            <ServiceCard key={s.title} title={s.title} body={s.body} />
+          {SERVICES.map((s, i) => (
+            <Reveal key={s.title} delay={(i % 2) * 90}>
+              <ServiceCard title={s.title} body={s.body} />
+            </Reveal>
           ))}
         </div>
       </div>
@@ -333,8 +424,10 @@ function Projects() {
           uavhengig av tid og sted.
         </p>
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {PROJECTS.map((p) => (
-            <ProjectCard key={p.title} {...p} />
+          {PROJECTS.map((p, i) => (
+            <Reveal key={p.title} delay={(i % 3) * 90}>
+              <ProjectCard {...p} />
+            </Reveal>
           ))}
         </div>
       </div>
@@ -370,8 +463,10 @@ function Resources() {
           Finn tekniske guider, metadata-verktøy og dokumentasjon for digitaliseringsarbeidet.
         </p>
         <div className="mt-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {RESOURCES.map((r) => (
-            <ResourceLink key={r.title} title={r.title} href={r.href} />
+          {RESOURCES.map((r, i) => (
+            <Reveal key={r.title} delay={(i % 3) * 70}>
+              <ResourceLink title={r.title} href={r.href} />
+            </Reveal>
           ))}
         </div>
       </div>
@@ -397,7 +492,7 @@ function SocialSection() {
             </PillButton>
           </div>
         </div>
-        <div className="flex items-center gap-4 rounded-[4px] border border-[#d8d4d4] bg-white/70 p-6 shadow-[0_4px_20px_rgba(0,0,0,0.08)] backdrop-blur-sm">
+        <Reveal className="flex items-center gap-4 rounded-[4px] border border-[#d8d4d4] bg-white/70 p-6 shadow-[0_4px_20px_rgba(0,0,0,0.08)] backdrop-blur-sm">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[4px] bg-[#181011]">
             <Instagram className="h-6 w-6 text-white" />
           </div>
@@ -405,7 +500,7 @@ function SocialSection() {
             <p className="text-[15px] font-bold text-[#181011]">@nasjonalmuseet</p>
             <p className="mt-0.5 text-[13px] text-[#666666]">Instagram</p>
           </div>
-        </div>
+        </Reveal>
       </div>
     </section>
   );
