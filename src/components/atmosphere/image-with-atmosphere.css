@@ -1,0 +1,139 @@
+/*
+ * Layer order (back to front):
+ *   1. .atmosphere-image  — the real <img>, always crisp
+ *   2. .atmosphere-tint   — static dark scrim, keeps overlaid text legible
+ *   3. .atmosphere-layer  — animated canvas (or CSS fallback), blended in
+ *   4. .atmosphere-content — optional caption/label slot
+ *
+ * `isolation: isolate` on the wrapper scopes mix-blend-mode to this card so
+ * it can never blend with page background or sibling cards.
+ */
+
+.atmosphere-wrapper {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: inherit;
+  background: #181011;
+}
+
+.atmosphere-image {
+  position: relative;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.atmosphere-tint {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(24, 16, 17, 0) 40%, rgba(24, 16, 17, 0.55) 100%);
+}
+
+.atmosphere-layer {
+  position: absolute;
+  inset: -4%;
+  z-index: 2;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  transform: translate3d(var(--atmosphere-tilt-x, 0), var(--atmosphere-tilt-y, 0), 0);
+  transition: transform 400ms ease-out;
+  mask-image: radial-gradient(120% 120% at 50% 50%, black 55%, transparent 100%);
+  -webkit-mask-image: radial-gradient(120% 120% at 50% 50%, black 55%, transparent 100%);
+}
+
+.atmosphere-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: blur(0.5px);
+}
+
+.atmosphere-content {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.atmosphere-content > * {
+  pointer-events: auto;
+}
+
+/* --- Mode-specific blend + mask tuning -------------------------------- */
+
+.atmosphere-mesh .atmosphere-layer {
+  mix-blend-mode: overlay;
+  mask-image: linear-gradient(180deg, transparent 0%, black 55%, black 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, black 55%, black 100%);
+}
+
+.atmosphere-scan .atmosphere-layer {
+  mix-blend-mode: screen;
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+/* --- Intensity maps to the static tint; canvas alpha is handled in JS - */
+
+.atmosphere-low .atmosphere-tint {
+  opacity: 0.55;
+}
+
+.atmosphere-medium .atmosphere-tint {
+  opacity: 0.8;
+}
+
+.atmosphere-high .atmosphere-tint {
+  opacity: 1;
+}
+
+/* --- CSS-only fallback (no canvas mounted) ----------------------------
+ * Used when JS opts out of the canvas entirely — e.g. a caller-chosen
+ * low-power mode, or before hydration in a framework that pre-renders.
+ * Reuses the same layer/mask/blend so it reads as the same visual family,
+ * just cheaper and coarser.
+ */
+
+.atmosphere-css-fallback .atmosphere-layer {
+  background: radial-gradient(60% 60% at 30% 30%, rgba(255, 255, 255, 0.16), transparent 70%);
+  background-size: 160% 160%;
+  animation: atmosphere-drift 18s ease-in-out infinite;
+}
+
+@keyframes atmosphere-drift {
+  0%,
+  100% {
+    background-position: 30% 30%;
+  }
+  50% {
+    background-position: 60% 55%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atmosphere-css-fallback .atmosphere-layer {
+    animation: none;
+  }
+
+  .atmosphere-layer {
+    transition: none;
+  }
+}
+
+/* Mobile: skip the canvas blur (compositing cost) and shrink the mask
+   feather slightly so the effect reads clearly at small sizes. */
+@media (max-width: 640px) {
+  .atmosphere-canvas {
+    filter: none;
+  }
+
+  .atmosphere-layer {
+    mask-image: radial-gradient(130% 130% at 50% 50%, black 60%, transparent 100%);
+    -webkit-mask-image: radial-gradient(130% 130% at 50% 50%, black 60%, transparent 100%);
+  }
+}
