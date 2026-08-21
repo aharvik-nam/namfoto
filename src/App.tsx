@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Instagram, Mail, MapPin } from "lucide-react";
-import { ImageWithAtmosphere } from "./components/atmosphere/ImageWithAtmosphere";
+import { PixelDissolveImage } from "./components/atmosphere/PixelDissolveImage";
 
 /**
  * Public marketing page for "Seksjon Foto" — Nasjonalmuseet's photo lab.
@@ -243,12 +243,10 @@ function Hero() {
           </div>
         </div>
 
-        <ImageWithAtmosphere
-          src="/images/nam-figurer.jpg"
+        <PixelDissolveImage
+          src="/images/picasso.jpg"
+          pixelSrc="/images/picasso-pixel.png"
           alt="Digitalisert maleri fra Nasjonalmuseets samling"
-          mode="glow"
-          intensity="high"
-          interactive
           priority
           aspectRatio="3203 / 4000"
           className="rounded-[4px] border border-[#181011]/15"
@@ -314,15 +312,25 @@ function CollectionShowcase() {
           Et utsnitt av arbeidet fra fotolaboratoriet — malerier fanget med sub-millimeter
           presisjon for arkiv, forskning og formidling.
         </p>
-        <div className="mt-12">
-          {/* TODO: bytt alt-tekst til korrekt tittel/kunstner/år fra samlingsdatabasen */}
-          <ImageWithAtmosphere
-            src="/images/nam-maaneskinn.jpg"
+        {/* TODO: bytt alt-tekst til korrekt tittel/kunstner/år fra samlingsdatabasen */}
+        <div className="mt-12 grid gap-4 sm:grid-cols-2">
+          <PixelDissolveImage
+            src="/images/munch.jpg"
+            pixelSrc="/images/munch-pixel.png"
             alt="Digitalisert landskapsmaleri fra Nasjonalmuseets samling"
-            mode="mesh"
-            intensity="low"
+            angle={100}
+            speed={17}
             aspectRatio="4000 / 3364"
-            className="mx-auto max-w-[900px] rounded-[4px] border border-[#181011]/15"
+            className="rounded-[4px] border border-[#181011]/15"
+          />
+          <PixelDissolveImage
+            src="/images/gogh.jpg"
+            pixelSrc="/images/gogh-pixel.png"
+            alt="Digitalisert maleri fra Nasjonalmuseets samling"
+            angle={112}
+            speed={19}
+            aspectRatio="3513 / 4000"
+            className="rounded-[4px] border border-[#181011]/15"
           />
         </div>
       </div>

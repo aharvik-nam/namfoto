@@ -1,0 +1,120 @@
+/*
+ * Two stacked <img> elements — a pre-pixelated/mosaic base and the crisp
+ * original on top — where the crisp layer is revealed through an animated
+ * mask. The reveal band sweeps slowly across the frame, so the image reads
+ * as constantly resolving from a coarse, data-scanned mosaic into the real
+ * photograph, then dissolving back.
+ */
+
+.pixel-dissolve {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: inherit;
+  background: #181011;
+}
+
+.pixel-dissolve-base,
+.pixel-dissolve-crisp {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pixel-dissolve-base {
+  image-rendering: pixelated;
+}
+
+.pixel-dissolve-crisp {
+  z-index: 1;
+  mask-image: linear-gradient(
+    var(--pd-angle, 105deg),
+    transparent 0%,
+    transparent 30%,
+    black 55%,
+    black 100%
+  );
+  -webkit-mask-image: linear-gradient(
+    var(--pd-angle, 105deg),
+    transparent 0%,
+    transparent 30%,
+    black 55%,
+    black 100%
+  );
+  mask-size: 260% 100%;
+  -webkit-mask-size: 260% 100%;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-position: 0% 0%;
+  -webkit-mask-position: 0% 0%;
+}
+
+.pixel-dissolve-crisp.is-animating {
+  animation-name: pixel-dissolve-sweep;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+@keyframes pixel-dissolve-sweep {
+  0% {
+    mask-position: 0% 0%;
+    -webkit-mask-position: 0% 0%;
+  }
+  100% {
+    mask-position: 100% 0%;
+    -webkit-mask-position: 100% 0%;
+  }
+}
+
+.pixel-dissolve-sparkles {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.pixel-dissolve-sparkle {
+  position: absolute;
+  background: #ffffff;
+  clip-path: polygon(50% 0%, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0% 50%, 38% 38%);
+  animation-name: pixel-dissolve-twinkle;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  opacity: 0.15;
+}
+
+@keyframes pixel-dissolve-twinkle {
+  0%,
+  100% {
+    opacity: 0.08;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.15);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pixel-dissolve-crisp.is-animating {
+    animation: none;
+    mask-position: 40% 0%;
+    -webkit-mask-position: 40% 0%;
+  }
+
+  .pixel-dissolve-sparkle {
+    animation: none;
+    opacity: 0.35;
+  }
+}
+
+@media (max-width: 640px) {
+  .pixel-dissolve-base {
+    image-rendering: auto;
+  }
+}
