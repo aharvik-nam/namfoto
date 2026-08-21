@@ -31,26 +31,26 @@
 
 .pixel-dissolve-crisp {
   z-index: 1;
-  mask-image: linear-gradient(
-    var(--pd-angle, 105deg),
-    transparent 0%,
-    transparent 30%,
-    black 55%,
-    black 100%
-  );
-  -webkit-mask-image: linear-gradient(
-    var(--pd-angle, 105deg),
-    transparent 0%,
-    transparent 30%,
-    black 55%,
-    black 100%
-  );
+  /* Default 105deg wipe; JSX sets mask-image/-webkit-mask-image inline with a
+     literal angle per instance instead of a custom property — some engines
+     handle CSS custom properties inside mask gradients inconsistently. */
+  mask-image: linear-gradient(105deg, transparent 0%, transparent 30%, black 55%, black 100%);
+  -webkit-mask-image: linear-gradient(105deg, transparent 0%, transparent 30%, black 55%, black 100%);
   mask-size: 260% 100%;
   -webkit-mask-size: 260% 100%;
   mask-repeat: no-repeat;
   -webkit-mask-repeat: no-repeat;
   mask-position: 0% 0%;
   -webkit-mask-position: 0% 0%;
+}
+
+/* Safety net: if mask-image support is missing or partial, fail open to the
+   crisp photo rather than risk an invisible/black layer. */
+@supports not (mask-image: linear-gradient(#000, #000)) {
+  .pixel-dissolve-crisp {
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
 }
 
 .pixel-dissolve-crisp.is-animating {

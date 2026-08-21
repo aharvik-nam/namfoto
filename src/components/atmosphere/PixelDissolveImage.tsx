@@ -95,8 +95,10 @@ export function PixelDissolveImage({
 }: PixelDissolveImageProps) {
   const { ref, animate } = useInViewMotion();
 
-  const crispStyle: CSSProperties & Record<string, string> = {
-    "--pd-angle": `${angle}deg`,
+  const gradient = `linear-gradient(${angle}deg, transparent 0%, transparent 30%, black 55%, black 100%)`;
+  const crispStyle: CSSProperties = {
+    maskImage: gradient,
+    WebkitMaskImage: gradient,
     animationDuration: `${speed}s`,
   };
 
