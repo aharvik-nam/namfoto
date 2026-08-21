@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Instagram, Mail, MapPin } from "lucide-react";
+import { ImageWithAtmosphere } from "./components/atmosphere/ImageWithAtmosphere";
 
 /**
  * Public marketing page for "Seksjon Foto" — Nasjonalmuseet's photo lab.
@@ -182,92 +183,6 @@ function ResourceLink({ title, href }: { title: string; href: string }) {
 }
 
 // ---------------------------------------------------------------------------
-// Hero illustration — a thin-line "capture grid" schematic standing in for
-// photography, in place of stock imagery the brand guide explicitly avoids.
-// ---------------------------------------------------------------------------
-
-const CAPTURED_CELLS = [
-  "2-1", "3-1", "4-1", "2-2", "3-2", "4-2", "5-2", "3-3", "4-3", "5-3", "6-3",
-  "4-4", "5-4", "6-4", "7-4", "5-5", "6-5", "7-5", "8-5", "6-6", "7-6",
-];
-
-function CaptureGridIllustration({ visible }: { visible: boolean }) {
-  const cols = 12;
-  const rows = 8;
-  const cell = 28;
-  const captured = new Set(CAPTURED_CELLS);
-
-  return (
-    <svg
-      viewBox={`0 0 ${cols * cell} ${rows * cell}`}
-      className="h-auto w-full"
-      role="img"
-      aria-label="Skjematisk rutenett som illustrerer et gigapixel-opptak, tegnet opp som en skanning"
-    >
-      <rect x="0" y="0" width={cols * cell} height={rows * cell} fill="#ffffff" />
-      {Array.from({ length: rows }).map((_, r) =>
-        Array.from({ length: cols }).map((_, c) => {
-          const key = `${c}-${r}`;
-          const isCaptured = captured.has(key);
-          const order = CAPTURED_CELLS.indexOf(key);
-          return (
-            <rect
-              key={key}
-              x={c * cell}
-              y={r * cell}
-              width={cell}
-              height={cell}
-              fill={isCaptured ? "#181011" : "none"}
-              className="transition-[fill-opacity] duration-500 ease-out motion-reduce:transition-none"
-              style={
-                isCaptured
-                  ? {
-                      fillOpacity: visible ? 0.06 : 0,
-                      transitionDelay: visible ? `${order * 18}ms` : "0ms",
-                    }
-                  : undefined
-              }
-              stroke="#181011"
-              strokeOpacity={0.3}
-              strokeWidth={1}
-            />
-          );
-        })
-      )}
-      <path
-        d={`M ${2 * cell} ${1 * cell} L ${8 * cell} ${5 * cell} L ${7 * cell} ${6 * cell}`}
-        fill="none"
-        stroke="#181011"
-        strokeWidth={1}
-        strokeDasharray="4 4"
-        className="animate-[dash-flow_1.4s_linear_infinite] transition-[stroke-opacity] duration-700 ease-out motion-reduce:animate-none"
-        style={{ strokeOpacity: visible ? 0.5 : 0 }}
-      />
-    </svg>
-  );
-}
-
-function CaptureGridPanel() {
-  const { ref, visible } = useReveal<HTMLDivElement>();
-  return (
-    <div ref={ref} className="relative rounded-[4px] border border-[#181011]/15 bg-white p-3">
-      <CaptureGridIllustration visible={visible} />
-      <div
-        className={`absolute bottom-4 left-4 max-w-[240px] rounded-[4px] border border-[#d8d4d4] bg-white/95 px-4 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.15)] backdrop-blur-sm transition-all duration-500 ease-out motion-reduce:transition-none ${
-          visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
-        }`}
-        style={{ transitionDelay: visible ? "550ms" : "0ms" }}
-      >
-        <p className="text-[14px] font-bold text-[#181011]">Gigapixelbilder</p>
-        <p className="mt-1 text-[12px] leading-[1.5] text-[#666666]">
-          1000–1500 næropptak satt sammen til ekstremt høyoppløselige filer.
-        </p>
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Sections
 // ---------------------------------------------------------------------------
 
@@ -328,7 +243,16 @@ function Hero() {
           </div>
         </div>
 
-        <CaptureGridPanel />
+        <ImageWithAtmosphere
+          src="/images/nam-figurer.jpg"
+          alt="Digitalisert maleri fra Nasjonalmuseets samling"
+          mode="glow"
+          intensity="medium"
+          interactive
+          priority
+          aspectRatio="3203 / 4000"
+          className="rounded-[4px] border border-[#181011]/15"
+        />
       </div>
     </section>
   );
@@ -372,6 +296,34 @@ function Services() {
               <ServiceCard title={s.title} body={s.body} />
             </Reveal>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CollectionShowcase() {
+  return (
+    <section className="border-t border-[#d8d4d4] bg-[#f3f1ed]">
+      <div className="mx-auto max-w-[1200px] px-6 py-16 md:py-20">
+        <SectionLabel>Fra samlingen</SectionLabel>
+        <h2 className="mt-6 max-w-[640px] text-[28px] leading-[1.3] tracking-[-0.02em] text-[#181011] md:text-[32px]">
+          Digitalisert i høy oppløsning
+        </h2>
+        <p className="mt-4 max-w-[640px] text-[17px] leading-[1.5] text-[#222222]">
+          Et utsnitt av arbeidet fra fotolaboratoriet — malerier fanget med sub-millimeter
+          presisjon for arkiv, forskning og formidling.
+        </p>
+        <div className="mt-12">
+          {/* TODO: bytt alt-tekst til korrekt tittel/kunstner/år fra samlingsdatabasen */}
+          <ImageWithAtmosphere
+            src="/images/nam-maaneskinn.jpg"
+            alt="Digitalisert landskapsmaleri fra Nasjonalmuseets samling"
+            mode="mesh"
+            intensity="low"
+            aspectRatio="4000 / 3364"
+            className="mx-auto max-w-[900px] rounded-[4px] border border-[#181011]/15"
+          />
         </div>
       </div>
     </section>
@@ -585,6 +537,7 @@ export default function App() {
       <Nav />
       <Hero />
       <Services />
+      <CollectionShowcase />
       <Projects />
       <Resources />
       <SocialSection />

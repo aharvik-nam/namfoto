@@ -9,12 +9,6 @@ body {
   background-color: #f3f1ed;
 }
 
-@keyframes dash-flow {
-  to {
-    stroke-dashoffset: -16;
-  }
-}
-
 @keyframes fade-up {
   from {
     opacity: 0;
