@@ -13,9 +13,9 @@ interface AtmosphereCanvasProps {
 }
 
 const INTENSITY_ALPHA: Record<AtmosphereIntensity, number> = {
-  low: 0.1,
-  medium: 0.18,
-  high: 0.3,
+  low: 0.14,
+  medium: 0.22,
+  high: 0.32,
 };
 
 export function AtmosphereCanvas({ mode, intensity, active, seed = 0 }: AtmosphereCanvasProps) {

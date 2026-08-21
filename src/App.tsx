@@ -247,7 +247,7 @@ function Hero() {
           src="/images/nam-figurer.jpg"
           alt="Digitalisert maleri fra Nasjonalmuseets samling"
           mode="glow"
-          intensity="medium"
+          intensity="high"
           interactive
           priority
           aspectRatio="3203 / 4000"

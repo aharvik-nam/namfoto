@@ -42,8 +42,8 @@
   mix-blend-mode: screen;
   transform: translate3d(var(--atmosphere-tilt-x, 0), var(--atmosphere-tilt-y, 0), 0);
   transition: transform 400ms ease-out;
-  mask-image: radial-gradient(120% 120% at 50% 50%, black 55%, transparent 100%);
-  -webkit-mask-image: radial-gradient(120% 120% at 50% 50%, black 55%, transparent 100%);
+  mask-image: radial-gradient(120% 120% at 50% 50%, black 62%, transparent 100%);
+  -webkit-mask-image: radial-gradient(120% 120% at 50% 50%, black 62%, transparent 100%);
 }
 
 .atmosphere-canvas {
@@ -100,7 +100,7 @@
  */
 
 .atmosphere-css-fallback .atmosphere-layer {
-  background: radial-gradient(60% 60% at 30% 30%, rgba(255, 255, 255, 0.16), transparent 70%);
+  background: radial-gradient(60% 60% at 30% 30%, rgba(255, 255, 255, 0.32), transparent 70%);
   background-size: 160% 160%;
   animation: atmosphere-drift 18s ease-in-out infinite;
 }
